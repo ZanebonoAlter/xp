@@ -1,0 +1,254 @@
+def start_phase2
+    # フェーズ 2 に移行
+    @phase = 2
+    @party = false
+    # パーティコマンドウィンドウを有効化
+    @party_command_window.active = true
+    @party_command_window.visible = true
+    # アクターを非選択状態に設定
+    @actor_index = -1
+    # アクターコマンドウィンドウを無効化
+    @actor_command_window.active = false
+    @actor_command_window.visible = false
+    if @command.size != 0
+      # アクターの明滅エフェクト OFF
+      if @active_actor != nil
+        @active_actor.blink = false
+      end
+    end
+    # カメラセット
+    @camera == "party"
+    @spriteset.screen_target(0, 0, 1)
+    # メインフェーズフラグをクリア
+    $game_temp.battle_main_phase = false
+  end
+##########################################
+
+ def start_phase3
+    # メインフェーズフラグをクリア
+    $game_temp.battle_main_phase = false
+    @command_a = true
+    @active_actor = @command[0]
+    cnt = 0
+    for actor in $game_party.actors
+      if actor == @active_actor
+        @actor_index = cnt
+      end
+      cnt += 1
+    end
+    @active_actor.blink = true
+    unless @active_actor.inputable?
+      @active_actor.current_action.clear
+      phase3_next_actor
+      return
+    end
+    phase3_setup_command_window
+    # カメラの設定
+    @camera = "command"
+    plus = ($game_party.actors.size - 1) / 2.0 - @actor_index
+    y = [(plus.abs - 1.5) * 10 , 0].min
+    @spriteset.screen_target(plus * 50, y, 1.0 + y * 0.002)
+  end
+
+################################
+  def phase3_next_actor
+    @command.shift
+    @command_a = false
+    # メインフェーズフラグをセット
+    $game_temp.battle_main_phase = true
+    # アクターコマンドウィンドウを無効化
+    @actor_command_window.active = false
+    @actor_command_window.visible = false
+    # アクターの明滅エフェクト OFF
+    if @active_actor != nil
+      @active_actor.blink = false
+    end
+    action_start(@active_actor)
+    # カメラを元に戻す
+    if @camera == "command"
+      @spriteset.screen_target(0, 0, 1)
+    end
+    return
+  end
+#################################
+
+def update_phase3_enemy_select
+    if victory?
+      # カメラを元に戻す
+      if @camera == "select"
+        @spriteset.screen_target(0, 0, 1)
+      end
+      # エネミーの選択を終了
+      end_enemy_select
+      return
+    end
+    # コマンド選択中に行動不能になった場合
+    unless @active_actor.inputable?
+      # カメラを元に戻す
+      if @camera == "select"
+        @spriteset.screen_target(0, 0, 1)
+      end
+      @active_actor.current_action.clear
+      command_delete
+      # 次のアクターのコマンド入力へ
+      phase3_next_actor
+      return
+    end
+    # エネミーアローを更新
+    @enemy_arrow.update
+    # B ボタンが押された場合
+    if Input.trigger?(Input::B)
+      # キャンセル SE を演奏
+      $game_system.se_play($data_system.cancel_se)
+      # カメラを元に戻す
+      if @camera == "select"
+        # カメラの設定
+        @camera = "command"
+        plus = ($game_party.actors.size - 1) / 2.0 - @actor_index
+        y = [(plus.abs - 1.5) * 10 , 0].min
+        @spriteset.screen_target(plus * 50, y, 1.0 + y * 0.002)
+      end
+      # エネミーの選択を終了
+      end_enemy_select
+      return
+    end
+    # C ボタンが押された場合
+    if Input.trigger?(Input::C)
+      # 決定 SE を演奏
+      $game_system.se_play($data_system.decision_se)
+      # アクションを設定
+      @active_actor.current_action.kind = 0
+      @active_actor.current_action.basic = 0
+      @active_actor.current_action.target_index = @enemy_arrow.index
+      # スキルウィンドウ表示中の場合
+      if @skill_window != nil
+        # アクションを再設定
+        @active_actor.current_action.kind = 1
+        # スキルの選択を終了
+        end_skill_select
+      end
+      # アイテムウィンドウ表示中の場合
+      if @item_window != nil
+        # アクションを再設定
+        @active_actor.current_action.kind = 2
+        # アイテムの選択を終了
+        end_item_select
+      end
+      # エネミーの選択を終了
+      end_enemy_select
+      # 次のアクターのコマンド入力へ
+      phase3_next_actor
+    end
+  end
+
+############################
+#--------------------------------------------------------------------------
+  # ● エネミー選択開始
+  #--------------------------------------------------------------------------
+  alias :start_enemy_select_rtab :start_enemy_select
+  def start_enemy_select
+    @camera = "select"
+    for enemy in $game_troop.enemies
+      if enemy.exist?
+        zoom = 1/ enemy.zoom
+        @spriteset.screen_target(enemy.attack_x(zoom) * 0.75,
+                                  enemy.attack_y(zoom) * 0.75, zoom)
+        break
+      end
+    end
+    # オリジナルの処理
+    start_enemy_select_rtab
+  end
+  #--------------------------------------------------------------------------
+  # ● エネミー選択終了
+  #--------------------------------------------------------------------------
+  alias :end_enemy_select_rtab :end_enemy_select
+  def end_enemy_select
+    # オリジナルの処理
+    end_enemy_select_rtab
+    if (@action == 0 and not @action_battlers.empty?) or
+          (@camera == "select" and (@active_actor.current_action.kind != 0 or
+                                            @active_actor.animation1_id != 0))
+      @spriteset.screen_target(0, 0, 1)
+    end
+  end
+
+########################################
+def update_phase4_step6(battler)
+    # カメラを戻す
+    if battler.target[0].is_a?(Game_Enemy) and @camera == battler
+      @spriteset.screen_target(0, 0, 1)
+    end
+    # スキルラーニング
+    if battler.target[0].is_a?(Game_Actor) and battler.current_action.kind == 1
+      for target in battler.target
+        skill_learning(target, target.class_id,
+                        battler.current_action.skill_id)
+      end
+    end
+    # アクション強制対象のバトラーをクリア
+    if battler.current_action.forcing == true and
+        battler.current_action.force_kind == 0 and
+        battler.current_action.force_basic == 0 and
+        battler.current_action.force_skill_id == 0
+      $game_temp.forcing_battler = nil
+      battler.current_action.forcing = false
+    end
+    refresh_phase(battler)
+    speller = synthe?(battler)
+    if speller != nil
+      for spell in speller
+        if spell != battler
+          refresh_phase(spell)
+        end
+      end
+      synthe_delete(speller)
+    end
+    # コモンイベント ID が有効の場合
+    if battler.event > 0
+      # イベントをセットアップ
+
+###########################
+def camera_set(battler)
+    @camera = battler
+    if battler.target.size == 1
+      if battler.current_action.kind == 0
+        zoom = 1.2 / battler.target[0].zoom
+      elsif synthe?(battler) == nil
+        zoom = 1.5 / battler.target[0].zoom
+      else
+        zoom = 2.0 / battler.target[0].zoom
+      end
+      @spriteset.screen_target(battler.target[0].attack_x(zoom),
+                                battler.target[0].attack_y(zoom), zoom)
+    else
+      @spriteset.screen_target(0, 0, 0.75)
+    end
+  end
+      common_event = $data_common_events[battler.event]
+      $game_system.battle_interpreter.setup(common_event.list, 0)
+    end
+    act = 0
+    for actor in $game_party.actors + $game_troop.enemies
+      if actor.movable?
+        act += 1
+      end
+    end
+    if @turn_cnt >= act and act > 0
+      @turn_cnt %= act
+      $game_temp.battle_turn += 1
+      # バトルイベントの全ページを検索
+      for index in 0...$data_troops[@troop_id].pages.size
+        # イベントページを取得
+        page = $data_troops[@troop_id].pages[index]
+        # このページのスパンが [ターン] の場合
+        if page.span == 1
+          # 実行済みフラグをクリア
+          $game_temp.battle_event_flags[index] = false
+        end
+      end
+    end
+    battler.phase = 1
+    @action_battlers.delete(battler)
+  end
+###########################################
