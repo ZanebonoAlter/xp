@@ -5,9 +5,12 @@
 <Workspace>
 	<Local Expanded="Yes">
 		<Model Expanded="Yes" ID="{C7D83AAC-63A8-4946-930B-7C0A99E4524E}" Loaded="No" Name="Business Process_1" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="wbs_1.bpm"/>
-		<Model Expanded="Yes" ID="{C7D83AAC-63A8-4946-930B-7C0A99E4524E}" Name="Business Process_1" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="wbs_1.bpm"/>
-		<Model ID="{07D867F9-2BC7-4F9B-AE52-30B12109ECBC}" Name="Business Process_1" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="status_1.bpm"/>
-		<Model Expanded="Yes" ID="{AC8579AE-9AD1-42BC-9BF5-B176C06111F2}" Name="Business Process_2" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="status_2.bpm"/>
+		<Model Expanded="Yes" ID="{C7D83AAC-63A8-4946-930B-7C0A99E4524E}" Loaded="No" Name="Business Process_1" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="wbs_1.bpm"/>
+		<Model ID="{07D867F9-2BC7-4F9B-AE52-30B12109ECBC}" Loaded="No" Name="Business Process_1" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="status_1.bpm"/>
+		<Model Expanded="Yes" ID="{AC8579AE-9AD1-42BC-9BF5-B176C06111F2}" Loaded="No" Name="Business Process_2" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="status_2.bpm"/>
+		<Model Expanded="Yes" ID="{D7E815F4-BF39-41A5-8031-3BD82DE60422}" Loaded="No" Name="Business Process_1" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="数据结构与程序关系.bpm"/>
+		<Model ID="{D7E815F4-BF39-41A5-8031-3BD82DE60422}" Loaded="No" Name="数据结构与程序关系" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="数据结构与程序关系.bpm"/>
+		<Model Expanded="Yes" ID="{D7E815F4-BF39-41A5-8031-3BD82DE60422}" Name="数据结构与程序关系" Type="{3D3C409C-B60D-430E-A1C4-B880653AC634}" URL="数据结构与程序关系.bpm"/>
 	</Local>
 	<BrowserModule Name="Repository"/>
 </Workspace>
